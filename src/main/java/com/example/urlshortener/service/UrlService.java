@@ -1,6 +1,6 @@
 package com.example.urlshortener.service;
 
-import com.example.urlshortener.dao.UrlDAO;
+import com.example.urlshortener.dao.url.UrlDAO;
 import com.example.urlshortener.exception.UrlNotFoundException;
 import com.example.urlshortener.exception.UrlValidationException;
 import com.example.urlshortener.model.UrlEntity;
@@ -23,10 +23,9 @@ public class UrlService {
     private final UrlDAO urlDAO;
 
     public String findOriginalUrl(String shortUrl) {
-        UrlEntity url = urlDAO.findByShortUrl(shortUrl).orElseThrow(() -> {
-            throw new UrlNotFoundException(HttpStatus.NOT_FOUND,
-                    "The short URL: " + shortUrl + " does not exist");
-        });
+        UrlEntity url = urlDAO.findByShortUrl(shortUrl).orElseThrow(() ->
+                new UrlNotFoundException(HttpStatus.NOT_FOUND,
+                "The short URL: " + shortUrl + " does not exist"));
 
         return url.getOriginalUrl();
     }

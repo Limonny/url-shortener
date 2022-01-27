@@ -1,4 +1,4 @@
-package com.example.urlshortener.dao;
+package com.example.urlshortener.dao.url;
 
 import com.example.urlshortener.model.UrlEntity;
 import lombok.AllArgsConstructor;
