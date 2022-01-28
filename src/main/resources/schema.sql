@@ -12,3 +12,10 @@ CREATE TABLE url(
 );
 
 CREATE UNIQUE INDEX original_idx ON url (original);
+
+CREATE TABLE visitor(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(6) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    FOREIGN KEY (url) REFERENCES url(short) ON DELETE CASCADE
+);

@@ -1,6 +1,7 @@
 package com.example.urlshortener.service;
 
 import com.example.urlshortener.dao.url.UrlDAO;
+import com.example.urlshortener.dao.visitor.VisitorDAO;
 import com.example.urlshortener.exception.UrlNotFoundException;
 import com.example.urlshortener.exception.UrlValidationException;
 import com.example.urlshortener.model.UrlEntity;
@@ -13,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +28,7 @@ import static com.example.urlshortener.util.ShortUrlGenerator.generateUrl;
 public class UrlService {
 
     private final UrlDAO urlDAO;
+    private final VisitorDAO visitorDAO;
 
     public List<UrlEntity> findAllWithLimit(Long limit, Long offset) {
         List<UrlEntity> urls = urlDAO.findAll(
@@ -45,10 +49,13 @@ public class UrlService {
                         "Url entity with short URL: " + shortUrl + " does not exist or has expired"));
     }
 
-    public String findOriginalUrl(String shortUrl) {
+    @Transactional
+    public String findOriginalUrl(String shortUrl, String ipAddress) {
         UrlEntity url = urlDAO.findByShortUrl(shortUrl).orElseThrow(() ->
                 new UrlNotFoundException(HttpStatus.NOT_FOUND,
                 "Short URL: " + shortUrl + " does not exist or has expired"));
+
+        visitorDAO.save(shortUrl, ipAddress);
 
         return url.getOriginalUrl();
     }
@@ -111,6 +118,18 @@ public class UrlService {
                         "Short URL: " + shortUrl + " does not exist or has expired"));
 
         urlDAO.updateExpiryDate(shortUrl, url.getExpirationDate().plusDays(days));
+    }
+
+    public Map<String, Long> getTotalVisitorsCount(String shortUrl) {
+        urlDAO.findByShortUrl(shortUrl).orElseThrow(() ->
+                new UrlNotFoundException(HttpStatus.NOT_FOUND,
+                        "Short URL: " + shortUrl + " does not exist or has expired"));
+
+        Map<String, Long> map = new HashMap<>();
+        map.put("total", visitorDAO.countVisitors(shortUrl));
+        map.put("unique", visitorDAO.countUniqueVisitors(shortUrl));
+
+        return map;
     }
 
     @Transactional

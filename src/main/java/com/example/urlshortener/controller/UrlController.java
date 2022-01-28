@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -21,11 +23,19 @@ public class UrlController {
 
     @GetMapping("/{url}")
     public void redirectToOriginalUrl(@PathVariable String url,
+                                      HttpServletRequest request,
                                       HttpServletResponse response) {
-        String result = urlService.findOriginalUrl(url);
+        String result = urlService.findOriginalUrl(url, request.getRemoteAddr());
 
         response.setHeader("Location", result);
         response.setStatus(303);
+    }
+
+    @GetMapping("/{url}/count")
+    public ResponseEntity<Map<String, Long>> getVisitorsCountForShortUrl(@PathVariable String url) {
+        Map<String, Long> result = urlService.getTotalVisitorsCount(url);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping("/submit")
