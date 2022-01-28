@@ -1,5 +1,6 @@
 package com.example.urlshortener.security;
 
+import com.example.urlshortener.model.user.Role;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/admin/**").hasRole(Role.ADMIN.name())
                 .antMatchers("/**").permitAll()
                 .and()
                 .httpBasic();

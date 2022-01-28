@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.urlshortener.util.ShortUrlGenerator.generateUrl;
@@ -21,6 +22,25 @@ import static com.example.urlshortener.util.ShortUrlGenerator.generateUrl;
 public class UrlService {
 
     private final UrlDAO urlDAO;
+
+    public List<UrlEntity> findAllWithLimit(Long limit, Long offset) {
+        List<UrlEntity> urls = urlDAO.findAll(
+                limit == null ? 100 : limit,
+                offset == null ? 0 : offset);
+
+        if (urls.isEmpty()) {
+            throw new UrlNotFoundException(HttpStatus.NOT_FOUND,
+                    "URLs not found");
+        }
+
+        return urls;
+    }
+
+    public UrlEntity findByShortUrl(String shortUrl) {
+        return urlDAO.findByShortUrl(shortUrl).orElseThrow(() ->
+                new UrlNotFoundException(HttpStatus.NOT_FOUND,
+                        "Url entity with short URL: " + shortUrl + " does not exist"));
+    }
 
     public String findOriginalUrl(String shortUrl) {
         UrlEntity url = urlDAO.findByShortUrl(shortUrl).orElseThrow(() ->
@@ -55,5 +75,15 @@ public class UrlService {
         urlDAO.save(generatedUrl, originalUrl);
 
         return generatedUrl;
+    }
+
+    @Transactional
+    public void deleteByShortUrl(String shortUrl) {
+        int modCount = urlDAO.deleteByShortUrl(shortUrl);
+
+        if (modCount == 0) {
+            throw new UrlNotFoundException(HttpStatus.NOT_FOUND,
+                    "Short URL: " + shortUrl + " does not exist");
+        }
     }
 }
