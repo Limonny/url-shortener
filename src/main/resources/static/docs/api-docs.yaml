@@ -1,0 +1,214 @@
+openapi: 3.0.1
+info:
+  description: "API for shortening URLs and redirecting to the original URLs."
+  title: "URL shortener"
+  version: "1.0"
+  contact:
+    email: "limonny7@gmail.com"
+servers:
+  - url: http://localhost:8080/
+tags:
+  - name: url
+  - name: url-admin
+paths:
+  /{url}:
+    get:
+      tags:
+        - "url"
+      summary: "Redirect to the original URL"
+      operationId: redirectToOriginalUrl
+      parameters:
+        - name: url
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Short URL"
+          example: "z7aa0t"
+      responses:
+        '303':
+          description: "Redirection to the original URL"
+        '404':
+          description: "Short URL not found"
+  /{url}/count:
+    get:
+      tags:
+        - "url"
+      summary: "Returns the total number of visitors and the number of unique visitors for the given URL"
+      operationId: getVisitorsCountForShortUrl
+      parameters:
+        - name: url
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Short URL"
+          example: "z7aa0t"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type : integer
+                    format: int64
+                    example: 220
+                  unique:
+                    type: integer
+                    format: int64
+                    example: 181
+        '404':
+          description: "Short URL not found"
+  /submit:
+    post:
+      tags:
+        - "url"
+      summary: "Creates and returns a short URL for the given source URL"
+      description: "The default lifespan of a short URL is 1 month, but an authorized user can change it for up to 12 months."
+      operationId: createShortUrl
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Original URL"
+          example: "google.com"
+        - name: activeFor
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: "Allows to set the lifespan of a short URL (in month)"
+          example: 9
+      responses:
+        '200':
+          description: OK
+          content:
+            string:
+              schema:
+                type: string
+                example: "localhost:8080/z7aa0t"
+        '400':
+          description: "The original URL is not a valid URL"
+  /admin/url:
+    get:
+      tags:
+        - "url-admin"
+      summary: "Get a list of UrlEntities"
+      description: "It is recommended to use additional parameters limit and offset to reduce the size of the result list."
+      operationId: getAll
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: "Allows to limit the number of returned entities"
+          example: 150
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: "Allows to skip the first N entities"
+          example: 1000
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UrlEntity'
+        '404':
+          description: "0 URLs found"
+  /admin/url/{shortUrl}:
+    get:
+      tags:
+        - "url-admin"
+      summary: "Get a specific UrlEntity"
+      operationId: getByShortUrl
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Short URL"
+          example: "z7aa0t"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEntity'
+        '404':
+          description: "URL does not exist"
+    delete:
+      tags:
+        - "url-admin"
+      summary: "Removes a specific URL"
+      operationId: deleteByShortUrl
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Short URL"
+          example: "z7aa0t"
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: "URL does not exist"
+    patch:
+      tags:
+        - "url-admin"
+      summary: "Prolongs the expiration date of the specific URL"
+      operationId: prolongExpirationDate
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Short URL"
+          example: "z7aa0t"
+        - name: days
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: "Extends the validity of the URL for N days"
+          example: 345
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: "URL does not exist"
+components:
+  schemas:
+    UrlEntity:
+      type: object
+      properties:
+        shortUrl:
+          type: string
+          example: "z7aa0t"
+        originalUrl:
+          type: string
+          example: "https://google.com"
+        expirationDate:
+          type: string
+          format: date
+          example: "2023-01-01"
