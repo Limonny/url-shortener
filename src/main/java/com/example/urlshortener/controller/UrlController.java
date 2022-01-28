@@ -1,10 +1,12 @@
 package com.example.urlshortener.controller;
 
 
+import com.example.urlshortener.security.SecurityUser;
 import com.example.urlshortener.service.UrlService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -27,8 +29,10 @@ public class UrlController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<String> createShortUrl(@RequestParam String url) {
-        String result = urlService.createShortUrl(url);
+    public ResponseEntity<String> createShortUrl(@RequestParam String url,
+                                                 @RequestParam(required = false) Integer activeFor,
+                                                 @AuthenticationPrincipal SecurityUser securityUser) {
+        String result = urlService.createShortUrl(url, activeFor, securityUser != null);
 
         return new ResponseEntity<>(domain + result, HttpStatus.CREATED);
     }

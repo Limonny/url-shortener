@@ -14,6 +14,7 @@ public class UrlEntityMapper implements RowMapper<UrlEntity> {
 
         url.setShortUrl(rs.getString("short"));
         url.setOriginalUrl(rs.getString("original"));
+        url.setExpirationDate(rs.getDate("expire").toLocalDate());
 
         return url;
     }

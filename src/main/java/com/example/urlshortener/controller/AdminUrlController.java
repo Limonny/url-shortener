@@ -36,4 +36,10 @@ public class AdminUrlController {
     public void deleteByShortUrl(@PathVariable String shortUrl) {
         urlService.deleteByShortUrl(shortUrl);
     }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{shortUrl}")
+    public void prolongExpirationDate(@PathVariable String shortUrl, @RequestParam Integer days) {
+        urlService.prolongExpirationDate(shortUrl, days);
+    }
 }

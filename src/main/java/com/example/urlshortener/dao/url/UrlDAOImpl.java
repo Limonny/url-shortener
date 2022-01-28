@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +41,10 @@ public class UrlDAOImpl implements UrlDAO {
     }
 
     @Override
-    public void save(String shortUrl, String originalUrl) {
-        String sql = "INSERT INTO url VALUES (?, ?)";
+    public void save(String shortUrl, String originalUrl, LocalDate expire) {
+        String sql = "INSERT INTO url VALUES (?, ?, ?)";
 
-        template.update(sql, shortUrl, originalUrl);
+        template.update(sql, shortUrl, originalUrl, expire);
     }
 
     @Override
@@ -51,5 +52,19 @@ public class UrlDAOImpl implements UrlDAO {
         String sql = "DELETE FROM url WHERE short = ?";
 
         return template.update(sql, shortUrl);
+    }
+
+    @Override
+    public void updateExpiryDate(String shortUrl, LocalDate expire) {
+        String sql = "UPDATE url SET expire = ? WHERE short = ?";
+
+        template.update(sql, expire, shortUrl);
+    }
+
+    @Override
+    public void deleteExpired() {
+        String sql = "DELETE FROM url WHERE expire < CURRENT_DATE";
+
+        template.update(sql);
     }
 }
